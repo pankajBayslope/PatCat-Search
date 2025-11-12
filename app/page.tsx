@@ -1,3 +1,4 @@
+// app/page.tsx
 "use client"
 
 import { useState } from "react"
@@ -35,7 +36,6 @@ export default function Home() {
       setKeywords(data.keywords)
       setTotalResults(data.total)
 
-      // Map backend fields to frontend
       const formatted = data.results.map((p: any) => ({
         id: p["Patent Number"] || p["Patent_Number"],
         number: p["Patent Number"] || p["Patent_Number"],
@@ -114,7 +114,7 @@ export default function Home() {
           </div>
         </motion.section>
 
-        {results.length > 0 && <ResultsDisplay results={results} />}
+        {results.length > 0 && <ResultsDisplay results={results} searchKeywords={keywords} />}
         <Footer />
       </div>
     </main>
