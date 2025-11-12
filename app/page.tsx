@@ -23,7 +23,7 @@ export default function Home() {
     setKeywords([])
 
     try {
-      const res = await fetch("https://pat-cat-backend-search.vercel.app/search", {
+      const res = await fetch("https://patcat-backend-search.onrender.com/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query })
