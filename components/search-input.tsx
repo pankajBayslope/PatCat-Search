@@ -45,7 +45,7 @@ export default function SearchInput({ onSearch, isLoading }: SearchInputProps) {
             onChange={(e) => setInput(e.target.value)}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder="Enter your query (e.g., thermal imaging patents)"
+            placeholder="Enter your query (e.g., Show me patents related to 3D imaging)"
             className="flex-1 bg-transparent text-foreground placeholder-muted-foreground outline-none text-base md:text-lg"
             disabled={isLoading}
           />
