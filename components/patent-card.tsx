@@ -126,6 +126,7 @@ export default function PatentCard({ patent }: PatentCardProps) {
 
         {/* Abstract */}
         <div className="mb-5">
+          <p className="font-semibold text-accent text-sm mb-2">Abstract:</p>
           <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
             {isExpanded ? patent.abstract : truncateAbstract(patent.abstract)}
           </p>
