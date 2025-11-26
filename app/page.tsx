@@ -7,6 +7,9 @@ import SearchHeader from "@/components/search-header"
 import SearchInput from "@/components/search-input"
 import ResultsDisplay from "@/components/results-display"
 import Footer from "@/components/footer"
+import AnalyticsModal from "@/components/analytics-modal"
+import { Button } from "@/components/ui/button"
+import * as XLSX from "xlsx"   // ← YE NAYA ADD KIYA
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -15,6 +18,7 @@ export default function Home() {
   const [keywords, setKeywords] = useState<string[]>([])
   const [totalResults, setTotalResults] = useState(0)
   const [hasSearched, setHasSearched] = useState(false)
+  const [showAnalytics, setShowAnalytics] = useState(false)
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query)
@@ -22,9 +26,10 @@ export default function Home() {
     setHasSearched(true)
     setResults([])
     setKeywords([])
+    setShowAnalytics(false)
 
     try {
-      const res = await fetch("https://patcat-backend-search.onrender.com/search", {
+      const res = await fetch("http://localhost:8000/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query })
@@ -56,12 +61,68 @@ export default function Home() {
     }
   }
 
+  // ← YE NAYA FUNCTION ADD KIYA (Excel Download)
+  const downloadExcel = () => {
+    const excelData = results.map((patent, index) => ({
+      "S.No": index + 1,
+      "Patent Number": patent.number,
+      "Title": patent.title,
+      "Domain": patent.domain,
+      "Technology Area": patent.technology,
+      "Sub-Technology": patent.subTechnology,
+      "Abstract": patent.abstract,
+      "Keywords": patent.keywords?.join(", ") || "",
+    }))
+
+    const ws = XLSX.utils.json_to_sheet(excelData)
+    
+    // Column width perfect kar diya
+    ws["!cols"] = [
+      { wch: 6 },   // S.No
+      { wch: 16 },  // Patent Number
+      { wch: 60 },  // Title
+      { wch: 22 },  // Domain
+      { wch: 28 },  // Technology Area
+      { wch: 35 },  // Sub-Technology
+      { wch: 90 },  // Abstract
+      { wch: 50 },  // Keywords
+    ]
+
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, "Patents")
+    
+    const fileName = searchQuery 
+      ? `${searchQuery.replace(/[^a-zA-Z0-9]/g, "_")}_patents.xlsx`
+      : `patent_results_${new Date().toISOString().slice(0,10)}.xlsx`
+    
+    XLSX.writeFile(wb, fileName)
+  }
+
   return (
     <main className="min-h-screen bg-background">
+      {/* Background Blobs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-32 left-1/4 w-80 h-80 bg-accent/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-32 right-1/4 w-80 h-80 bg-secondary/5 rounded-full blur-3xl"></div>
       </div>
+
+      {/* VIEW ANALYTICS BUTTON */}
+      {results.length > 0 && (
+        <div className="fixed left-2 top-10 z-50 flex flex-col gap-4 animate-in fade-in slide-in-from-left-4 duration-700">
+          <Button
+            onClick={() => setShowAnalytics(true)}
+            size="lg"
+            className="rounded-full px-10 py-7 text-xl font-bold shadow-2xl
+                       bg-gradient-to-r from-[#492b4e] via-[#10182d] to-[#213e6e]
+                       hover:from-[#492b4e] hover:via-[#10182d] hover:to-[#213e6e]
+                       text-white transform hover:scale-110 active:scale-95
+                       transition-all duration-500 animate-pulse shadow-orange-500/50
+                       border-2 border-white/20"
+          >
+            View Analytics
+          </Button>
+        </div>
+      )}
 
       <div className="relative z-10 flex flex-col min-h-screen">
         <SearchHeader />
@@ -114,9 +175,35 @@ export default function Home() {
           </div>
         </motion.section>
 
+        {/* RESULTS */}
         {results.length > 0 && <ResultsDisplay results={results} searchKeywords={keywords} />}
+
+        {/* ← YE NAYA DOWNLOAD BUTTON ADD KIYA */}
+        {results.length > 0 && (
+          <div className="max-w-4xl mx-auto my-16 text-center px-4">
+            <Button
+              onClick={downloadExcel}
+              size="lg"
+              className="rounded-full px-12 py-8 text-xl font-bold shadow-2xl
+                         bg-gradient-to-r from-emerald-600 to-green-700 
+                         hover:from-emerald-700 hover:to-green-800
+                         text-white transform hover:scale-105 active:scale-95
+                         transition-all duration-300 animate-pulse"
+            >
+              Download All {results.length} Patents as Excel
+            </Button>
+          </div>
+        )}
+
         <Footer />
       </div>
+
+      {/* ANALYTICS MODAL */}
+      <AnalyticsModal 
+        results={results} 
+        open={showAnalytics} 
+        onOpenChange={setShowAnalytics} 
+      />
     </main>
   )
 }
